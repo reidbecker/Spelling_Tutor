@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Tutor</title>
+    <style>
+        /* General Setup */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            background-color: #f0f4f8; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+        }
+        
+        /* Main Container */
+        .container { 
+            width: 95%; 
+            max-width: 600px; 
+            background-color: #ffffff; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+        
+        /* Header */
+        h1 {
+            background-color: #1e88e5;
+            color: white;
+            padding: 15px 20px;
+            margin: 0;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        /* ID Input Bar */
+        #id-area {
+            display: flex;
+            padding: 10px 20px;
+            background-color: #e3f2fd;
+            border-bottom: 1px solid #bbdefb;
+            align-items: center;
+        }
+        #id-area label {
+            font-weight: bold;
+            color: #1565c0;
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+        #user-id {
+            padding: 8px;
+            border: 1px solid #90caf9;
+            border-radius: 6px;
+            flex-grow: 1;
+            font-size: 14px;
+        }
+
+        /* Chat Window */
+        #chat-window { 
+            height: 350px; 
+            padding: 20px; 
+            overflow-y: auto; 
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        /* Message Styling */
+        .message-row {
+            display: flex;
+            width: 100%;
+        }
+
+        .tutor-row {
+            justify-content: flex-start;
+        }
+
+        .student-row {
+            justify-content: flex-end;
+        }
+
+        .message { 
+            padding: 12px 16px; 
+            border-radius: 20px; 
+            max-width: 80%; 
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-size: 1rem;
+        }
+
+        .tutor-message { 
+            background-color: #e0f7fa; 
+            color: #004d40;
+            border-bottom-left-radius: 4px;
+        }
+        .student-message { 
+            background-color: #c8e6c9; 
+            color: #1b5e20;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Input Area */
+        #input-area { 
+            display: flex; 
+            padding: 15px 20px; 
+            background-color: #f9f9f9; 
+            border-top: 1px solid #eee;
+            gap: 10px;
+        }
+        #user-input { 
+            flex-grow: 1; 
+            padding: 12px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            transition: border-color 0.3s;
+        }
+        #user-input:focus {
+            border-color: #1e88e5;
+            outline: none;
+        }
+
+        /* Buttons */
+        #send-button, #mic-button { 
+            padding: 12px 18px; 
+            border: none; 
+            cursor: pointer; 
+            color: white; 
+            font-size: 16px; 
+            border-radius: 8px;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+        #send-button { 
+            background-color: #1e88e5; 
+        }
+        #mic-button { 
+            background-color: #ff5722; 
+        }
+        #send-button:hover:not(:disabled), #mic-button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        #send-button:disabled, #mic-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* Status Message */
+        #status-message {
+            padding: 10px; 
+            text-align: center; 
+            color: #d32f2f; /* Red */
+            background-color: #ffcdd2; /* Light Red */
+            font-weight: bold;
+        }
+        #warning-message {
+            padding: 10px; 
+            text-align: center; 
+            color: #f57f17; /* Orange */
+            background-color: #fff9c4; /* Light Yellow */
+            font-weight: bold;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            .container {
+                min-height: 95vh;
+                width: 100%;
+                border-radius: 0;
+            }
+            #input-area {
+                padding: 10px;
+                gap: 5px;
+            }
+            #user-input, #send-button, #mic-button {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            #id-area {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗣️ The Spelling Tutor 📝</h1>
+
+        <!-- CRITICAL ERROR MESSAGE (Removed when URL is set) -->
+        <div id="status-message" style="display: none;"></div>
+
+        <!-- ID Input Bar -->
+        <div id="id-area">
+            <label for="user-id">Student ID:</label>
+            <input type="text" id="user-id" placeholder="Enter ID to begin">
+        </div>
+
+        <!-- 1. CHAT WINDOW: Where messages appear -->
+        <div id="chat-window">
+            <!-- Initial message will be inserted here -->
+        </div>
+
+        <!-- 2. INPUT/CONTROL AREA: Where the student interacts -->
+        <div id="input-area">
+            <input type="text" id="user-input" placeholder="Enter your spelling or question here..." disabled>
+            <button id="send-button" disabled>Send</button>
+            <button id="mic-button" disabled>🎤 Speak</button>
+        </div>
+
+        <!-- Warning for Microphone Support -->
+        <div id="warning-message" style="display: none;"></div>
+    </div>
+    
+    <!-- JavaScript Logic -->
+    <script>
+        // --- CONFIGURATION ---
+        // !!! CRITICAL: Replace the placeholder below with the actual URL from your Make.com Webhook !!!
+        //const MAKE_WEBHOOK_URL = '[YOUR_MAKE_WEBHOOK_URL_HERE]';
+        const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/khlm9x843q59bwonukw1yxbls4zu9pst';
+        
+        // --- STATE ---
+        let chatHistory = [];
+        let recognition; // For Web Speech API - Voice to Text
+        let isListening = false;
+        let isUserIdEntered = false;
+
+        // --- DOM Elements ---
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const micButton = document.getElementById('mic-button');
+        const idInput = document.getElementById('user-id');
+        const statusMessage = document.getElementById('status-message');
+        const warningMessage = document.getElementById('warning-message');
+
+        // --- UTILITY FUNCTIONS ---
+
+        function displayMessage(text, isTutor) {
+            const rowClass = isTutor ? 'tutor-row' : 'student-row';
+            const messageClass = isTutor ? 'tutor-message' : 'student-message';
+            
+            const messageRow = document.createElement('div');
+            messageRow.className = 'message-row ' + rowClass;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + messageClass;
+            messageDiv.textContent = text;
+            
+            messageRow.appendChild(messageDiv);
+            chatWindow.appendChild(messageRow);
+            
+            // Auto-scroll to the bottom
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function speakText(text) {
+            // Check if Web Speech Synthesis is supported
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                // Optionally set a friendly, clear voice (will depend on user's OS/browser)
+                utterance.voice = speechSynthesis.getVoices().find(v => v.lang === 'en-US' && v.name.includes('Google') || v.name.includes('Zira')); 
+                
+                // Clear the queue and speak
+                speechSynthesis.cancel();
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        function updateControls(isDisabled) {
+            userInput.disabled = isDisabled;
+            sendButton.disabled = isDisabled;
+            micButton.disabled = isDisabled || !('webkitSpeechRecognition' in window);
+        }
+
+        // --- CORE LOGIC ---
+
+        async function sendMessage(input, isVoice = false) {
+            if (!isUserIdEntered) {
+                displayMessage("Please enter your Student ID before starting.", true);
+                return;
+            }
+            if (!input.trim()) return;
+
+            // 1. Display and speak student input
+            displayMessage(input, false);
+            updateControls(true); // Disable input while waiting for response
+            
+            userInput.value = '';
+
+            // 2. Prepare and send payload to Make.com
+            const userId = idInput.value;
+            const payload = {
+                user_id: userId,
+                user_input: input,
+                chat_history: JSON.stringify(chatHistory)
+            };
+
+            // 3. Update chat history with student's message for next turn
+            chatHistory.push({ role: "user", text: input });
+
+            try {
+                // If the webhook URL is still the placeholder, show a fatal error
+                if (MAKE_WEBHOOK_URL.includes('[YOUR_MAKE_WEBHOOK_URL_HERE]')) {
+                //if (MAKE_WEBHOOK_URL.includes('https://hook.us2.make.com/khlm9x843q59bwonukw1yxbls4zu9pst')) {
+                    statusMessage.style.display = 'block';
+                    statusMessage.textContent = "!!! CRITICAL ERROR: Please replace the placeholder MAKE_WEBHOOK_URL in the JavaScript code with your actual MAKE.com Webhook URL.";
+                    updateControls(true);
+                    return;
+                }
+                
+                const response = await fetch(MAKE_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const tutorResponse = data.tutor_response;
+                
+                // 4. Handle Tutor Response
+                if (tutorResponse) {
+                    displayMessage(tutorResponse, true);
+                    speakText(tutorResponse);
+                    
+                    // 5. Update chat history with tutor's message
+                    chatHistory.push({ role: "tutor", text: tutorResponse });
+                }
+
+            } catch (error) {
+                console.error('Error communicating with Make/ElevenLabs:', error);
+                const errorMessage = "Sorry, I had trouble connecting to the network. Please try again.";
+                displayMessage(errorMessage, true);
+                speakText(errorMessage);
+            } finally {
+                updateControls(false); // Enable input again
+            }
+        }
+
+        // --- VOICE RECOGNITION (MIC BUTTON) SETUP ---
+
+        function setupVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false; // Only recognize one phrase
+                recognition.interimResults = false; // Only return final result
+                recognition.lang = 'en-US';
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    micButton.textContent = '🛑 Stop Listening';
+                    micButton.style.backgroundColor = '#d32f2f'; // Change color while listening
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    micButton.textContent = '🎤 Speak';
+                    micButton.style.backgroundColor = '#ff5722';
+                };
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    if (transcript) {
+                        sendMessage(transcript, true);
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech Recognition Error:', event.error);
+                    if (event.error !== 'no-speech') {
+                       displayMessage("Microphone error: Please check your settings and try again.", true);
+                    }
+                };
+                
+            } else {
+                // Browser does not support Speech Recognition
+                micButton.disabled = true;
+                micButton.style.backgroundColor = '#cccccc';
+                warningMessage.style.display = 'block';
+                warningMessage.textContent = "Your browser does not fully support voice input. Please use the typing field (Google Chrome recommended for full voice features).";
+            }
+        }
+
+        // --- EVENT HANDLERS ---
+        
+        // Handle User ID Input and Control State
+        idInput.addEventListener('input', () => {
+            const id = idInput.value.trim();
+            const isValid = id.length >= 1; // Basic validation: ID must be at least 1 character
+
+            if (isValid && !isUserIdEntered) {
+                // First time a valid ID is entered, enable controls
+                isUserIdEntered = true;
+                updateControls(false);
+                idInput.disabled = true; // Lock the ID once conversation starts
+                
+                // Initiate the first message to the Tutor
+                displayMessage("Welcome! Starting new session...", true);
+                sendMessage("Hello Tutor, please introduce yourself and ask me for my grade level.", true);
+                
+            } else if (!isValid) {
+                // If ID is cleared or invalid before starting
+                isUserIdEntered = false;
+                updateControls(true);
+            }
+        });
+
+        // Handle Send Button Click
+        sendButton.addEventListener('click', () => {
+            sendMessage(userInput.value);
+        });
+
+        // Handle Enter Key Press in input field
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage(userInput.value);
+            }
+        });
+
+        // Handle Mic Button Click
+        micButton.addEventListener('click', () => {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                // Stop any speaking and start listening
+                speechSynthesis.cancel();
+                recognition.start();
+            }
+        });
+
+        // --- INITIALIZATION ---
+        
+        window.onload = () => {
+            setupVoiceRecognition();
+            
+            // Check for the CRITICAL ERROR placeholder on load
+            if (MAKE_WEBHOOK_URL.includes('[YOUR_MAKE_WEBHOOK_URL_HERE]')) {
+           // if (MAKE_WEBHOOK_URL.includes('https://hook.us2.make.com/khlm9x843q59bwonukw1yxbls4zu9pst')) {
+                statusMessage.style.display = 'block';
+                statusMessage.textContent = "!!! CRITICAL ERROR: Please replace the placeholder MAKE_WEBHOOK_URL in the JavaScript code with your actual MAKE.com Webhook URL.";
+                updateControls(true);
+            } else {
+                // If URL is set, hide error and enable ID input
+                document.getElementById('user-id').disabled = false;
+                idInput.focus();
+            }
+        };
+
+    </script>
+</body>
+</html>
