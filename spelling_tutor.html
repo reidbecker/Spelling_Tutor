@@ -308,7 +308,6 @@
             try {
                 // If the webhook URL is still the placeholder, show a fatal error
                 if (MAKE_WEBHOOK_URL.includes('[YOUR_MAKE_WEBHOOK_URL_HERE]')) {
-                //if (MAKE_WEBHOOK_URL.includes('https://hook.us2.make.com/khlm9x843q59bwonukw1yxbls4zu9pst')) {
                     statusMessage.style.display = 'block';
                     statusMessage.textContent = "!!! CRITICAL ERROR: Please replace the placeholder MAKE_WEBHOOK_URL in the JavaScript code with your actual MAKE.com Webhook URL.";
                     updateControls(true);
